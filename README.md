@@ -1,6 +1,6 @@
 # Event Reconciliation System
 
-A multi-tenant reconciliation platform built with Django and React.
+A multi-tenant reconciliation platform built with Django and React/Next.js.
 
 ## Features
 
