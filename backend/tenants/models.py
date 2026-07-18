@@ -20,5 +20,3 @@ class Location(models.Model):
 
     def __str__(self) -> str:
         return f"{self.location_id} - {self.name}"
-
-# Create your models here.
