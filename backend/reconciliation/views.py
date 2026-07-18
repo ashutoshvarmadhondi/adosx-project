@@ -7,6 +7,11 @@ from rest_framework.views import APIView
 from reconciliation.models import ReconciliationException, ReasonCode
 from reconciliation.serializers import ReconciliationExceptionSerializer
 from tenants.db_context import tenant_database_context
+from reconciliation.qa_service import build_grounded_answer
+from reconciliation.serializers import (
+    ExceptionQuestionSerializer,
+    ReconciliationExceptionSerializer,
+)
 
 
 class ReconciliationExceptionListView(APIView):
@@ -74,5 +79,49 @@ class ReconciliationExceptionListView(APIView):
             {
                 "count": len(serialized_data),
                 "results": serialized_data,
+            }
+        )
+
+
+class ReconciliationExceptionQuestionView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        request_serializer = ExceptionQuestionSerializer(
+            data=request.data
+        )
+        request_serializer.is_valid(raise_exception=True)
+
+        try:
+            organization = request.user.profile.organization
+        except ObjectDoesNotExist:
+            return Response(
+                {
+                    "detail": (
+                        "The authenticated user is not associated "
+                        "with an organization."
+                    )
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        question = request_serializer.validated_data["question"]
+
+        with tenant_database_context(organization):
+            queryset = (
+                ReconciliationException.objects
+                .select_related("organization", "location")
+            )
+
+            grounded_answer = build_grounded_answer(
+                question=question,
+                queryset=queryset,
+            )
+
+        return Response(
+            {
+                "answer": grounded_answer.answer,
+                "citations": grounded_answer.citations,
+                "supported": grounded_answer.supported,
             }
         )

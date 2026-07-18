@@ -28,3 +28,11 @@ class ReconciliationExceptionSerializer(serializers.ModelSerializer):
             "evidence",
             "created_at",
         ]
+
+
+class ExceptionQuestionSerializer(serializers.Serializer):
+    question = serializers.CharField(
+        max_length=500,
+        allow_blank=False,
+        trim_whitespace=True,
+    )
