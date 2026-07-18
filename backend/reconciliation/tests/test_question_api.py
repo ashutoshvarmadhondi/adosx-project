@@ -85,7 +85,8 @@ class ReconciliationExceptionQuestionAPITest(APITestCase):
             format="json",
         )
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("detail", response.data)
 
     def test_answers_from_visible_rows_only(self):
         self.client.force_authenticate(user=self.user_a)

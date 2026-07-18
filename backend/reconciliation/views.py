@@ -1,17 +1,39 @@
+import re
+
 from django.core.exceptions import ObjectDoesNotExist
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from reconciliation.models import ReconciliationException, ReasonCode
-from reconciliation.serializers import ReconciliationExceptionSerializer
-from tenants.db_context import tenant_database_context
+from reconciliation.models import (
+    ReasonCode,
+    ReconciliationException,
+)
 from reconciliation.qa_service import build_grounded_answer
 from reconciliation.serializers import (
     ExceptionQuestionSerializer,
     ReconciliationExceptionSerializer,
 )
+from tenants.db_context import tenant_database_context
+
+
+def normalize_identifier_search(
+    value: str | None,
+    prefix: str,
+) -> str:
+    if not value:
+        return ""
+
+    cleaned = value.strip().upper()
+    cleaned = re.sub(r"[\s_-]+", "", cleaned)
+
+    normalized_prefix = prefix.replace("-", "")
+
+    if cleaned.startswith(normalized_prefix):
+        cleaned = cleaned[len(normalized_prefix):]
+
+    return cleaned
 
 
 class ReconciliationExceptionListView(APIView):
@@ -43,10 +65,21 @@ class ReconciliationExceptionListView(APIView):
             return Response(
                 {
                     "detail": "Invalid reason_code.",
-                    "valid_reason_codes": sorted(valid_reason_codes),
+                    "valid_reason_codes": sorted(
+                        valid_reason_codes
+                    ),
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        record_search = normalize_identifier_search(
+            record_id,
+            "REC",
+        )
+        location_search = normalize_identifier_search(
+            location_id,
+            "LOC",
+        )
 
         with tenant_database_context(organization):
             queryset = (
@@ -60,20 +93,26 @@ class ReconciliationExceptionListView(APIView):
                     reason_code=reason_code
                 )
 
-            if record_id:
+            if record_search:
                 queryset = queryset.filter(
-                    record_id__iexact=record_id.strip()
+                    record_id__icontains=record_search
                 )
 
-            if location_id:
+            if location_search:
                 queryset = queryset.filter(
-                    location__location_id__iexact=location_id.strip()
+                    location__location_id__icontains=(
+                        location_search
+                    )
                 )
 
-            serialized_data = ReconciliationExceptionSerializer(
-                queryset,
-                many=True,
-            ).data
+            exceptions = list(queryset)
+
+            serialized_data = (
+                ReconciliationExceptionSerializer(
+                    exceptions,
+                    many=True,
+                ).data
+            )
 
         return Response(
             {

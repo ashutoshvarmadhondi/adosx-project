@@ -1,5 +1,8 @@
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, get_user_model
 from rest_framework import serializers
+
+
+User = get_user_model()
 
 
 class LoginSerializer(serializers.Serializer):
@@ -13,8 +16,22 @@ class LoginSerializer(serializers.Serializer):
     )
 
     def validate(self, attrs):
+        supplied_username = attrs["username"].strip()
+
+        user_match = (
+            User.objects
+            .filter(username__iexact=supplied_username)
+            .first()
+        )
+
+        if user_match is None:
+            raise serializers.ValidationError(
+                "Invalid username or password."
+            )
+
         user = authenticate(
-            username=attrs["username"],
+            request=self.context.get("request"),
+            username=user_match.username,
             password=attrs["password"],
         )
 

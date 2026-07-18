@@ -77,7 +77,8 @@ class ReconciliationExceptionAPITest(APITestCase):
     def test_requires_authentication(self):
         response = self.client.get("/api/exceptions/")
 
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 401)
+        self.assertIn("detail", response.data)
 
     def test_returns_only_authenticated_users_organization(self):
         self.client.force_authenticate(user=self.user_a)
