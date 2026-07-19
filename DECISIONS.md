@@ -1,21 +1,49 @@
-## Django and React instead of a full Next.js application
+# Decisions
 
-I used Django for the backend and React with Vite for the frontend instead of building the entire project in Next.js.
+## 1. Django and React instead of a full Next.js application
 
-Next.js could handle both the UI and API layer, but Django was a better fit for the CSV processing, reconciliation rules, database models, migrations, and automated backend tests. React with Vite kept the frontend simple because the application only needed a small authenticated dashboard.
+**Decision:** Use Django for the backend and React with Vite for the frontend.
 
-This also kept the responsibilities clear: Django handles data, security, reconciliation, and APIs, while React handles presentation.
+**Rejected alternative:** Build the complete application in Next.js.
 
+**Reason:** Django was a better fit for CSV processing, database models, migrations, reconciliation logic, and backend testing, while React kept the dashboard simple.
 
-## PostgreSQL in Docker instead of a separate local installation
+---
 
-I ran PostgreSQL in Docker instead of asking each developer to install and configure PostgreSQL directly on their computer.
+## 2. PostgreSQL in Docker instead of a separate local installation
 
-A local PostgreSQL installation can behave differently across operating systems and may already use conflicting ports, users, or database settings. Docker gives the project a consistent database version and setup, and it can be started or removed with a few commands.
+**Decision:** Run PostgreSQL using Docker Compose.
 
+**Rejected alternative:** Ask each developer to install and configure PostgreSQL directly on their computer.
 
-## Token authentication instead of session-based authentication
+**Reason:** Docker provides the same database version and configuration across different machines and avoids local port or setup conflicts.
 
-I used token authentication between the React frontend and Django API instead of Django session authentication.
+---
 
-Since the frontend and backend run as separate applications, tokens made the API flow easier to understand and test. Session authentication would require additional cookie and Cross-Site Request Forgery configuration.
+## 3. Token authentication instead of session authentication
+
+**Decision:** Use token authentication between the React frontend and Django API.
+
+**Rejected alternative:** Use Django session and cookie-based authentication.
+
+**Reason:** Tokens were simpler for two separately running applications and avoided additional cookie and CSRF configuration.
+
+---
+
+## 4. Reconciliation logic in a service layer
+
+**Decision:** Keep CSV parsing, normalization, and reconciliation rules in separate service files.
+
+**Rejected alternative:** Write the reconciliation logic directly inside Django API views.
+
+**Reason:** Separating the business logic made it easier to test and kept the API views focused on requests and responses.
+
+---
+
+## 5. Management command instead of a CSV upload screen
+
+**Decision:** Run CSV ingestion and reconciliation through a Django management command.
+
+**Rejected alternative:** Build a frontend upload page with background processing.
+
+**Reason:** A command-line workflow was enough for the assignment and allowed more time to focus on reconciliation accuracy and tenant isolation.
