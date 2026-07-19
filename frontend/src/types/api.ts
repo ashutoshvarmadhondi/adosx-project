@@ -25,6 +25,12 @@ export type AuthUser = {
   
   export type ExceptionListResponse = {
     count: number;
+    filters: {
+      record_id_input: string;
+      record_id_normalized: string;
+      location_id_input: string;
+      location_id_normalized: string;
+    };
     results: ReconciliationException[];
   };
   

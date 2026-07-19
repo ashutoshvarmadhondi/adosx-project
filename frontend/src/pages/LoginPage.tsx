@@ -1,21 +1,36 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import {
+  ArrowRight,
+  LockKeyhole,
+  ShieldCheck,
+  User,
+} from "lucide-react";
+import {
+  Navigate,
+  useNavigate,
+} from "react-router-dom";
 
+import AppHeader from "../components/AppHeader";
 import { login } from "../lib/api";
 
 export default function LoginPage() {
   const navigate = useNavigate();
 
+  const token = localStorage.getItem("auth_token");
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const token = localStorage.getItem("auth_token");
+
   if (token) {
     return <Navigate to="/dashboard" replace />;
   }
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
 
     setError("");
@@ -32,57 +47,103 @@ export default function LoginPage() {
 
       navigate("/dashboard", { replace: true });
     } catch (loginError) {
-      const message =
+      setError(
         loginError instanceof Error
           ? loginError.message
-          : "Unable to log in.";
-
-      setError(message);
+          : "Unable to sign in.",
+      );
     } finally {
       setIsSubmitting(false);
     }
   }
 
   return (
-    <main>
-      <section>
-        <h1>Reconciliation Login</h1>
-        <p>Sign in to view your organization&apos;s exceptions.</p>
+    <div className="login-page">
+      <AppHeader />
 
-        <form onSubmit={handleSubmit}>
-          <div>
-            <label htmlFor="username">Username</label>
-            <input
-              id="username"
-              name="username"
-              type="text"
-              autoComplete="username"
-              value={username}
-              onChange={(event) => setUsername(event.target.value)}
-              required
-            />
+      <main className="login-main">
+        <section className="login-card">
+          <div className="login-card-icon">
+            <ShieldCheck size={28} />
           </div>
 
-          <div>
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              required
-            />
+          <div className="login-heading">
+            <p>Secure organization access</p>
+            <h1>Sign in</h1>
+            <span>
+          To review your organization&apos;s
+              reconciliation exceptions.
+            </span>
           </div>
 
-          {error ? <p role="alert">{error}</p> : null}
+          <form
+            className="login-form"
+            onSubmit={handleSubmit}
+          >
+            <label htmlFor="username">
+              Username
 
-          <button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Signing in..." : "Sign in"}
-          </button>
-        </form>
-      </section>
-    </main>
+              <div className="login-input-wrapper">
+                <User size={18} />
+
+                <input
+                  id="username"
+                  name="username"
+                  type="text"
+                  autoComplete="username"
+                  placeholder="Enter your username"
+                  value={username}
+                  onChange={(event) =>
+                    setUsername(event.target.value)
+                  }
+                  required
+                />
+              </div>
+            </label>
+
+            <label htmlFor="password">
+              Password
+
+              <div className="login-input-wrapper">
+                <LockKeyhole size={18} />
+
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(event) =>
+                    setPassword(event.target.value)
+                  }
+                  required
+                />
+              </div>
+            </label>
+
+            {error ? (
+              <div className="login-error" role="alert">
+                {error}
+              </div>
+            ) : null}
+
+            <button
+              className="login-submit-button"
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Signing in..." : "Sign in"}
+              {!isSubmitting ? <ArrowRight size={18} /> : null}
+            </button>
+          </form>
+
+          <div className="login-security-note">
+            <ShieldCheck size={15} />
+            Access is restricted to your assigned organization.
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }
