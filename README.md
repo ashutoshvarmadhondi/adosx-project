@@ -355,7 +355,7 @@ Open that URL in a browser.
 Both servers must remain running:
 ```
 Backend:  http://127.0.0.1:8000
-Frontend: http://127.0.0.1:5173
+Frontend: http://localhost:5173/
 ```
 
 ##### Load and reconcile the sample CSV files
