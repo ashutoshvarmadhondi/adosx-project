@@ -1,4 +1,4 @@
-## 0. Prequisites
+## Prequisites
 
 This section assumes the reader is starting from a new computer and may not already have Python, Node.js, Docker, PostgreSQL, Git, or Visual Studio Code installed.
 
